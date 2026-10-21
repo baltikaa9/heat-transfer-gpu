@@ -1,0 +1,5 @@
+CompileFlags:
+  Add:
+    - -fopenmp
+    - -isystem
+    - /usr/lib/gcc/x86_64-pc-linux-gnu/15.3.0/include
