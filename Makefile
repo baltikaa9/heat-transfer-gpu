@@ -1,6 +1,7 @@
 NVCC = nvcc
 TARGET = heat_bench.o
 SRC = heat_bench.cu
+RES = benchmark_results.csv
 
 # Список GPU, доступных программе. Можно переопределить:
 # make run GPUS=0,1,2,3
@@ -15,13 +16,19 @@ build: $(TARGET)
 $(TARGET): $(SRC)
 	$(NVCC) -O3 -arch=native -Xcompiler -fopenmp $(SRC) -o $(TARGET)
 
-# Запуск benchmark на выбранных GPU.
+# Принудительный запуск benchmark на выбранных GPU (всегда пересчитывает).
 run: $(TARGET)
 	CUDA_VISIBLE_DEVICES=$(GPUS) ./$(TARGET)
 
-# Построение графиков и сводных CSV через uv.
-plot: run
-	uv run plot.py
+# CSV строится, только если его ещё нет. Бинарник нужен лишь в этом случае
+# (order-only зависимость), поэтому на клиенте без nvcc с готовым CSV
+# ничего не собирается и не запускается.
+$(RES): | $(TARGET)
+	CUDA_VISIBLE_DEVICES=$(GPUS) ./$(TARGET)
+
+# Построение графиков через uv.
+plot: $(RES)
+	uv run plot
 
 gpus:
 	nvidia-smi -L
